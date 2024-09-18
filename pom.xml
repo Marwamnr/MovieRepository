@@ -13,7 +13,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jackson.version>2.15.0</jackson.version>
-        <lombok.version>1.18.28</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <hibernate.version>6.2.4.Final</hibernate.version>
         <postgresql.version>42.7.2</postgresql.version>
         <junit.version>5.9.1</junit.version>
@@ -22,7 +22,7 @@
         <hikari.version>5.1.0</hikari.version>
 
         <!-- DATABASE PROJECT NAME ON SERVER  -->
-        <db.name>jpademo</db.name>
+        <db.name>movieRepository</db.name>
     </properties>
 
     <dependencies>
@@ -136,7 +136,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0</version>
             </plugin>
-
         </plugins>
     </build>
 
