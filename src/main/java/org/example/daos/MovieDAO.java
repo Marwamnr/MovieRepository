@@ -1,22 +1,24 @@
 package org.example.daos;
 
-import org.example.entities.Movie;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.TypedQuery;
+import org.example.dtos.MovieDTO;
+import org.example.entities.Director;
+import org.example.entities.Movie;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class MovieDAO implements GenericDAO<Movie> {
+public class MovieDAO {
 
     private static MovieDAO instance;
     private static EntityManagerFactory emf;
 
-    // Privat constructor for at sikre singleton pattern
-    private MovieDAO(EntityManagerFactory emf) {
+    public MovieDAO(EntityManagerFactory emf) {
         this.emf = emf;
     }
 
-    // Returnerer en singleton-instans af MovieDAO
     public static MovieDAO getInstance(EntityManagerFactory emf) {
         if (instance == null) {
             instance = new MovieDAO(emf);
@@ -24,79 +26,120 @@ public class MovieDAO implements GenericDAO<Movie> {
         return instance;
     }
 
-    // Opretter en ny Movie i databasen (CREATE)
-    @Override
-    public Movie create(Movie movie) {
-        try (EntityManager em = emf.createEntityManager()) {
-            em.getTransaction().begin();  // Starter en ny transaktion
-            em.persist(movie);  // Gemmer den nye movie i databasen
-            em.getTransaction().commit();  // Committer transaktionen
-        }
-        return movie;  // Returnerer den oprettede movie
-    }
-
-    // Opdaterer en eksisterende Movie i databasen (UPDATE)
-    @Override
-    public Movie update(Movie movie) {
+    // CREATE
+    public MovieDTO createMovie(MovieDTO movieDTO) {
+        Movie movie = movieDTO.toEntity();
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            Movie existingMovie = em.find(Movie.class, movie.getId());  // Finder Movie ved ID
-            if (existingMovie == null) {
-                throw new IllegalArgumentException("Movie med ID " + movie.getId() + " blev ikke fundet.");
+
+            // Handle Director
+            if (movieDTO.getDirector() != null) {
+                Director director = em.find(Director.class, movieDTO.getDirector().getId());
+                if (director != null) {
+                    movie.setDirector(director);
+                } else {
+                    throw new IllegalArgumentException("Director with ID " + movieDTO.getDirector().getId() + " not found.");
+                }
             }
 
-            // Opdaterer Movie-objektets felter
-            existingMovie.setTitle(movie.getTitle());
-            existingMovie.setYear(movie.getYear());
-            existingMovie.setRating(movie.getRating());
-            existingMovie.setActors(movie.getActors());
-            existingMovie.setGenres(movie.getGenres());
-            existingMovie.setDirector(movie.getDirector());
+            em.persist(movie);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+        return MovieDTO.fromEntity(movie);
+    }
 
-            em.merge(existingMovie);  // Slår opdateringerne sammen med eksisterende data
-            em.getTransaction().commit();  // Committer transaktionen
-            return existingMovie;  // Returnerer den opdaterede movie
+    // READ BY ID
+    public MovieDTO getMovieById(Long id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            Movie movie = em.find(Movie.class, id);
+            return movie != null ? MovieDTO.fromEntity(movie) : null;
+        } finally {
+            em.close();
+        }
+    }
+
+    // UPDATE
+    public MovieDTO updateMovie(MovieDTO movieDTO) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            Movie movie = em.find(Movie.class, movieDTO.getId());
+            if (movie == null) {
+                throw new IllegalArgumentException("Movie with ID " + movieDTO.getId() + " not found.");
+            }
+
+            // Update basic fields
+            movie.setTitle(movieDTO.getTitle());
+            movie.setYear(movieDTO.getYear());
+            movie.setRating(movieDTO.getRating());
+
+            // Handle Director
+            if (movieDTO.getDirector() != null) {
+                Director director = em.find(Director.class, movieDTO.getDirector().getId());
+                if (director != null) {
+                    movie.setDirector(director);
+                } else {
+                    throw new IllegalArgumentException("Director with ID " + movieDTO.getDirector().getId() + " not found.");
+                }
+            }
+
+            // Merge changes
+            em.merge(movie);
+            em.getTransaction().commit();
+
+            return MovieDTO.fromEntity(movie);
 
         } catch (Exception e) {
             if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();  // Ruller tilbage, hvis der er en fejl
+                em.getTransaction().rollback();
             }
-            throw e;  // Kaster undtagelsen videre
+            throw e;
         } finally {
-            em.close();  // Lukker EntityManager
+            em.close();
         }
     }
 
-    // Finder en Movie ved ID (READ)
-    @Override
-    public Movie findById(Long id) {
-        try (EntityManager em = emf.createEntityManager()) {
-            return em.find(Movie.class, id);  // Finder og returnerer Movie ved ID
-        }
-    }
-
-    // Henter alle Movie-objekter fra databasen (READ ALL)
-    @Override
-    public List<Movie> findAll() {
-        try (EntityManager em = emf.createEntityManager()) {
-            return em.createQuery("SELECT m FROM Movie m", Movie.class).getResultList();  // Henter alle Movie-objekter
-        }
-    }
-
-    // Sletter en Movie ved ID fra databasen (DELETE)
-    @Override
-    public void delete(Long id) {
+    // DELETE
+    public void deleteMovie(Long id) {
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            Movie movie = em.find(Movie.class, id);  // Finder Movie ved ID
+            Movie movie = em.find(Movie.class, id);
             if (movie != null) {
-                em.remove(movie);  // Sletter movie, hvis den findes
+                em.remove(movie);
+                em.getTransaction().commit();
             }
-            em.getTransaction().commit();  // Committer transaktionen
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
-            em.close();  // Lukker EntityManager
+            em.close();
+        }
+    }
+
+    // GET ALL MOVIES
+    public List<MovieDTO> getAllMovies() {
+        EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Movie> query = em.createQuery("SELECT m FROM Movie m", Movie.class);
+            List<Movie> movies = query.getResultList();
+            return movies.stream()
+                    .map(MovieDTO::fromEntity)
+                    .collect(Collectors.toList());
+        } finally {
+            em.close();
         }
     }
 }
