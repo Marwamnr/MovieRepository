@@ -2,54 +2,136 @@ package org.example.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dtos.MovieDTO;
+import org.example.daos.MovieDAO;
+import org.example.dtos.MovieResponseDTO;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class MovieService {
-    public static void main(String[] args) {
+
+    /*
+    private static final String MOVIES_ENDPOINT = "/discover/movie?api_key=f0cae1f38d73242e49780b68affbaf65&language=da&region=DK&primary_release_date.gte=2019-09-17&primary_release_date.lte=2024-09-17";
+    private final MovieDAO movieDAO;
+
+    public MovieService(MovieDAO movieDAO) {
+        this.movieDAO = movieDAO;
+    }
+
+    public List<MovieDTO> fetchMovies() throws IOException, InterruptedException {
+        String jsonResponse = ApiService.getApiResponse(MOVIES_ENDPOINT);
+
+        // Convert JSON response to List<MovieDTO>
+        List<MovieDTO> movieDTOs = JsonService.convertJsonToList(jsonResponse, MovieDTO.class);
+
+        // Persist each MovieDTO
+        movieDTOs.forEach(dto -> movieDAO.createMovie(dto));
+
+        return movieDTOs;
+    }
+
+    public List<MovieDTO> getAllMovies() {
+        return movieDAO.getAllMovies();
+    }
+
+    public MovieDTO getMovieById(Long id) {
+        return movieDAO.getMovieById(id);
+    }
+
+    public void addMovie(MovieDTO movieDTO) {
+        movieDAO.createMovie(movieDTO);
+    }
+
+    public void updateMovie(MovieDTO movieDTO) {
+        movieDAO.updateMovie(movieDTO);
+    }
+
+    public void deleteMovie(Long id) {
+        movieDAO.deleteMovie(id);
+    }
+
+    public List<MovieDTO> searchMoviesByTitle(String title) {
+        return movieDAO.getAllMovies().stream()
+                .filter(movieDTO -> movieDTO.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    public double getAverageRating() {
+        return movieDAO.getAllMovies().stream()
+                .mapToDouble(MovieDTO::getRating)
+                .average()
+                .orElse(0.0);
+    }
+
+    public List<MovieDTO> getTop10HighestRated() {
+        return movieDAO.getAllMovies().stream()
+                .sorted((m1, m2) -> Double.compare(m2.getRating(), m1.getRating()))
+                .limit(10)
+                .collect(Collectors.toList());
+    }
+
+    public List<MovieDTO> getTop10LowestRated() {
+        return movieDAO.getAllMovies().stream()
+                .sorted((m1, m2) -> Double.compare(m1.getRating(), m2.getRating()))
+                .limit(10)
+                .collect(Collectors.toList());
+    }
+
+    public List<MovieDTO> getTop10MostPopular() {
+        return movieDAO.getAllMovies().stream()
+                .sorted((m1, m2) -> Integer.compare(m2.getPopularity(), m1.getPopularity()))
+                .limit(10)
+                .collect(Collectors.toList());
+    }
+
+     */
+
+    public List<MovieDTO> fetchMovies() {
         try {
 
-
-            // Create an HttpClient instance
             HttpClient client = HttpClient.newHttpClient();
 
-            // Create a request
+
             HttpRequest request = HttpRequest.newBuilder()
-                    //Indsætte API link
                     .uri(new URI("https://api.themoviedb.org/3/discover/movie?api_key=f0cae1f38d73242e49780b68affbaf65&language=en-US&region=DK&primary_release_date.gte=2019-09-17&primary_release_date.lte=2024-09-17"))
                     .version(HttpClient.Version.HTTP_1_1)
                     .GET()
                     .build();
 
-            // Send the request and get the response
+
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // Check the status code and print the response
+
             if (response.statusCode() == 200) {
                 System.out.println(response.body());
-                // Example JSON string
+
+
                 String json = response.body();
-                // Create ObjectMapper instance
+
                 ObjectMapper objectMapper = new ObjectMapper();
 
                 try {
-                    // Convert JSON string to MovieDTO
-                    MovieDTO movieDTO = objectMapper.readValue(json, MovieDTO.class);
 
-                    // Print the MovieDTO object
-                    System.out.println(movieDTO);
-                } catch (Exception e) {
+                    MovieResponseDTO movieResponse = objectMapper.readValue(json, MovieResponseDTO.class);
+
+
+                    return movieResponse.getResults();
+
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
-
             } else {
-                System.out.println("GET request failed. Status code: " + response.statusCode());
+                System.out.println("Failed to get response from the server. Status code: " + response.statusCode());
             }
-        } catch (Exception e) {
+        } catch (URISyntaxException | IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        return null;
     }
 }
