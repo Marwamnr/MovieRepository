@@ -1,5 +1,6 @@
 package org.example.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,12 +14,13 @@ import java.util.Set;
 @Setter
 public class Movie {
 
-   @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-   private Long id;
     private String title;
-    private int year;
+    private String year;
+
     private double rating;
 
     @ManyToMany
@@ -31,7 +33,7 @@ public class Movie {
     @JoinColumn(name = "director_id")
     private Director director;
 
-    public Movie(Long id, String title, int year, double rating, Set<Actor> actors, Set<Genre> genres, Director director) {
+    public Movie(Long id, String title, String year, double rating, Set<Actor> actors, Set<Genre> genres, Director director) {
         this.id = id;
         this.title = title;
         this.year = year;
