@@ -1,22 +1,22 @@
 package org.example.daos;
 
-import org.example.entities.Genre;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.TypedQuery;
+import org.example.dtos.GenreDTO;
+import org.example.entities.Genre;
 
 import java.util.List;
 
-public class GenreDAO implements GenericDAO<Genre> {
+public class GenreDAO {
 
     private static GenreDAO instance;
-    private static EntityManagerFactory emf;
+    private EntityManagerFactory emf;
 
-    // Privat constructor for at sikre singleton pattern
-    private GenreDAO(EntityManagerFactory emf) {
+    public GenreDAO(EntityManagerFactory emf) {
         this.emf = emf;
     }
 
-    // Returnerer en singleton-instans af GenreDAO
     public static GenreDAO getInstance(EntityManagerFactory emf) {
         if (instance == null) {
             instance = new GenreDAO(emf);
@@ -24,73 +24,95 @@ public class GenreDAO implements GenericDAO<Genre> {
         return instance;
     }
 
-    // Opretter en ny Genre i databasen (CREATE)
-    @Override
-    public Genre create(Genre genre) {
-        try (EntityManager em = emf.createEntityManager()) {
-            em.getTransaction().begin();  // Starter en ny transaktion
-            em.persist(genre);  // Gemmer den nye genre i databasen
-            em.getTransaction().commit();  // Committer transaktionen
-        }
-        return genre;  // Returnerer den oprettede genre
-    }
-
-    // Opdaterer en eksisterende Genre i databasen (UPDATE)
-    @Override
-    public Genre update(Genre genre) {
+    // CREATE
+    public GenreDTO createGenre(GenreDTO genreDTO) {
+        Genre genre = genreDTO.toEntity();
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            Genre existingGenre = em.find(Genre.class, genre.getId());  // Finder Genre ved ID
-            if (existingGenre == null) {
-                throw new IllegalArgumentException("Genre med ID " + genre.getId() + " blev ikke fundet.");
+            em.persist(genre);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+        return GenreDTO.fromEntity(genre);
+    }
+
+    // READ BY ID
+    public GenreDTO getGenreById(Long id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            Genre genre = em.find(Genre.class, id);
+            return genre != null ? GenreDTO.fromEntity(genre) : null;
+        } finally {
+            em.close();
+        }
+    }
+
+    // UPDATE
+    public GenreDTO updateGenre(GenreDTO genreDTO) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            Genre genre = em.find(Genre.class, genreDTO.getId());
+            if (genre == null) {
+                throw new IllegalArgumentException("Genre with ID " + genreDTO.getId() + " not found.");
             }
 
-            existingGenre.setName(genre.getName());  // Opdaterer genreens navn
+            // Update basic fields
+            genre.setName(genreDTO.getName());
 
-            em.merge(existingGenre);  // Slår opdateringerne sammen med eksisterende data
-            em.getTransaction().commit();  // Committer transaktionen
-            return existingGenre;  // Returnerer den opdaterede genre
+            em.merge(genre);
+            em.getTransaction().commit();
+            return GenreDTO.fromEntity(genre);
 
         } catch (Exception e) {
             if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();  // Ruller tilbage, hvis der er en fejl
+                em.getTransaction().rollback();
             }
-            throw e;  // Kaster undtagelsen videre
+            throw e;
         } finally {
-            em.close();  // Lukker EntityManager
+            em.close();
         }
     }
 
-    // Finder en Genre ved ID (READ)
-    @Override
-    public Genre findById(Long id) {
-        try (EntityManager em = emf.createEntityManager()) {
-            return em.find(Genre.class, id);  // Finder og returnerer Genre ved ID
-        }
-    }
-
-    // Henter alle Genre-objekter fra databasen (READ ALL)
-    @Override
-    public List<Genre> findAll() {
-        try (EntityManager em = emf.createEntityManager()) {
-            return em.createQuery("SELECT g FROM Genre g", Genre.class).getResultList();  // Henter alle Genre-objekter
-        }
-    }
-
-    // Sletter en Genre ved ID fra databasen (DELETE)
-    @Override
-    public void delete(Long id) {
+    // DELETE
+    public void deleteGenre(Long id) {
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            Genre genre = em.find(Genre.class, id);  // Finder Genre ved ID
+            Genre genre = em.find(Genre.class, id);
             if (genre != null) {
-                em.remove(genre);  // Sletter genre, hvis den findes
+                em.remove(genre);
+                em.getTransaction().commit();
             }
-            em.getTransaction().commit();  // Committer transaktionen
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
-            em.close();  // Lukker EntityManager
+            em.close();
+        }
+    }
+
+    // GET ALL GENRES
+    public List<GenreDTO> getAllGenres() {
+        EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Genre> query = em.createQuery("SELECT g FROM Genre g", Genre.class);
+            List<Genre> genres = query.getResultList();
+            return genres.stream()
+                    .map(GenreDTO::fromEntity)
+                    .toList();
+        } finally {
+            em.close();
         }
     }
 }
