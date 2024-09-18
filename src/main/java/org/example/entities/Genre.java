@@ -23,7 +23,6 @@ public class Genre {
     @ManyToMany(mappedBy = "genres")
     private Set<Movie> movies = new HashSet<>();  // Liste over film i genren.
 
-    // Tom konstruktør kræves af JPA for at kunne oprette objekter automatisk.
     public Genre() {
     }
 }

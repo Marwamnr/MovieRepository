@@ -8,7 +8,7 @@ import org.example.entities.Genre;
 
 import java.util.List;
 
-public class GenreDAO {
+/*public class GenreDAO {
 
     private static GenreDAO instance;
     private EntityManagerFactory emf;
@@ -115,4 +115,4 @@ public class GenreDAO {
             em.close();
         }
     }
-}
+}*/

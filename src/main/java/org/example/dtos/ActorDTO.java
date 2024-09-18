@@ -24,11 +24,11 @@ public class ActorDTO {
         return actor;
     }
 
-    public static ActorDTO fromEntity(Actor actor) {
+    /*public static ActorDTO fromEntity(Actor actor) {
         return new ActorDTO(
                 actor.getId(),
                 actor.getName(),
                 actor.getMovies().stream().map(MovieDTO::fromEntity).collect(Collectors.toList())
-        );
+        );*/
     }
-}
+

@@ -8,7 +8,7 @@ import org.example.entities.Actor;
 
 import java.util.List;
 
-public class ActorDAO {
+/*public class ActorDAO {
 
     private static ActorDAO instance;
     private EntityManagerFactory emf;
@@ -115,4 +115,4 @@ public class ActorDAO {
             em.close();
         }
     }
-}
+}*/

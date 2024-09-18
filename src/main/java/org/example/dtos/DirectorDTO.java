@@ -24,12 +24,12 @@ public class DirectorDTO {
         return director;
     }
 
-    public static DirectorDTO fromEntity(Director director) {
+    /*public static DirectorDTO fromEntity(Director director) {
         return new DirectorDTO(
                 director.getId(),
                 director.getName(),
                 director.getMovies().stream().map(MovieDTO::fromEntity).collect(Collectors.toList())
         );
-    }
+    }*/
 }
 

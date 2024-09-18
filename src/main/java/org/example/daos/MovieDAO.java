@@ -10,7 +10,7 @@ import org.example.entities.Movie;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MovieDAO {
+/*public class MovieDAO {
 
     private static MovieDAO instance;
     private static EntityManagerFactory emf;
@@ -142,4 +142,4 @@ public class MovieDAO {
             em.close();
         }
     }
-}
+}*/

@@ -8,7 +8,7 @@ import org.example.entities.Director;
 
 import java.util.List;
 
-public class DirectorDAO {
+/*public class DirectorDAO {
 
     private static DirectorDAO instance;
     private static EntityManagerFactory emf;
@@ -115,4 +115,4 @@ public class DirectorDAO {
             em.close();
         }
     }
-}
+}*/

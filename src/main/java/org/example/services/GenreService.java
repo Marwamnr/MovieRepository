@@ -1,85 +1,59 @@
 package org.example.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.dtos.GenreDTO;
-import org.example.entities.Genre;
-import org.example.entities.Movie;
-import org.example.daos.GenreDAO;
-
+import org.example.dtos.GenreResponseDTO;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class GenreService {
 
-    private static final String GENRES_ENDPOINT = "/genre/movie/list?language=da";
-    private static final String MOVIES_ENDPOINT = "/discover/movie?api_key=f0cae1f38d73242e49780b68affbaf65&language=da&region=DK&primary_release_date.gte=2019-09-17&primary_release_date.lte=2024-09-17";
+    // API-endpoint til at hente genrer
+    private static final String GENRE_ENDPOINT = "https://api.themoviedb.org/3/genre/movie/list?api_key=f0cae1f38d73242e49780b68affbaf65&language=da";
 
-    private final GenreDAO genreDAO;
+    // Metode til at hente genrer fra API
+    public List<GenreDTO> fetchGenres() {
+        try {
+            // Opret HttpClient og HttpRequest
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI(GENRE_ENDPOINT))
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .GET()
+                    .build();
 
-    public GenreService(GenreDAO genreDAO) {
-        this.genreDAO = genreDAO;
-    }
+            // Send forespørgslen
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-    public List<GenreDTO> fetchGenres() throws IOException, InterruptedException {
-        // Fetch movie data
-        String jsonResponse = ApiService.getApiResponse(MOVIES_ENDPOINT);
-        List<Movie> movies = JsonService.convertJsonToList(jsonResponse, Movie.class);
+            // Kontroller om forespørgslen lykkedes (statuskode 200)
+            if (response.statusCode() == 200) {
+                System.out.println("Response body: " + response.body());
 
-        // Extract genre IDs from the filtered Danish movies
-        Set<Long> genreIds = movies.stream()
-                .flatMap(movie -> movie.getGenres().stream())
-                .map(Genre::getId)
-                .collect(Collectors.toSet());
+                // Pars response body til JSON
+                String json = response.body();
+                ObjectMapper objectMapper = new ObjectMapper();
 
-        // Fetch genre data from the API
-        jsonResponse = ApiService.getApiResponse(GENRES_ENDPOINT);
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode rootNode = mapper.readTree(jsonResponse);
-        JsonNode genresNode = rootNode.path("genres");
-        List<GenreDTO> genreDTOs = mapper.readerForListOf(GenreDTO.class).readValue(genresNode.toString());
+                try {
+                    // Konverter JSON response til GenreResponseDTO
+                    GenreResponseDTO genreResponse = objectMapper.readValue(json, GenreResponseDTO.class);
 
-        // Filter genres based on extracted genre IDs
-        List<GenreDTO> filteredGenreDTOs = genreDTOs.stream()
-                .filter(dto -> genreIds.contains(dto.getId()))
-                .collect(Collectors.toList());
-
-        // Save filtered genres to the database
-        filteredGenreDTOs.forEach(genreDAO::createGenre);
-
-        return filteredGenreDTOs;
-    }
-
-    public List<GenreDTO> getAllGenres() {
-        return genreDAO.getAllGenres();
-    }
-
-    public GenreDTO getGenreById(Long id) {
-        return genreDAO.getGenreById(id);
-    }
-
-    public List<Movie> getMoviesByGenre(Long genreId) throws IOException, InterruptedException {
-        // Fetch recent Danish movies
-        String jsonResponse = ApiService.getApiResponse(MOVIES_ENDPOINT);
-        List<Movie> movies = JsonService.convertJsonToList(jsonResponse, Movie.class);
-
-        // Filter movies by genre
-        return movies.stream()
-                .filter(movie -> movie.getGenres().stream().anyMatch(genre -> genre.getId().equals(genreId)))
-                .collect(Collectors.toList());
-    }
-
-    public void addGenre(GenreDTO genreDTO) {
-        genreDAO.createGenre(genreDTO);
-    }
-
-    public void updateGenre(GenreDTO genreDTO) {
-        genreDAO.updateGenre(genreDTO);
-    }
-
-    public void deleteGenre(Long id) {
-        genreDAO.deleteGenre(id);
+                    // Returner listen af GenreDTO'er fra responsen
+                    return genreResponse.getGenres();
+                } catch (IOException e) {
+                    System.err.println("Failed to parse JSON: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("Failed to fetch genres. Status code: " + response.statusCode());
+            }
+        } catch (URISyntaxException | IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
