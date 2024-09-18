@@ -1,22 +1,22 @@
 package org.example.daos;
 
-import org.example.entities.Director;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.TypedQuery;
+import org.example.dtos.DirectorDTO;
+import org.example.entities.Director;
 
 import java.util.List;
 
-public class DirectorDAO implements GenericDAO<Director> {
+public class DirectorDAO {
 
     private static DirectorDAO instance;
     private static EntityManagerFactory emf;
 
-    // Privat constructor for at sikre singleton pattern
-    private DirectorDAO(EntityManagerFactory emf) {
+    public DirectorDAO(EntityManagerFactory emf) {
         this.emf = emf;
     }
 
-    // Returnerer en singleton-instans af DirectorDAO
     public static DirectorDAO getInstance(EntityManagerFactory emf) {
         if (instance == null) {
             instance = new DirectorDAO(emf);
@@ -24,73 +24,95 @@ public class DirectorDAO implements GenericDAO<Director> {
         return instance;
     }
 
-    // Opretter en ny Director i databasen (CREATE)
-    @Override
-    public Director create(Director director) {
-        try (EntityManager em = emf.createEntityManager()) {
-            em.getTransaction().begin();  // Starter en ny transaktion
-            em.persist(director);  // Gemmer den nye director i databasen
-            em.getTransaction().commit();  // Committer transaktionen
-        }
-        return director;  // Returnerer den oprettede director
-    }
-
-    // Opdaterer en eksisterende Director i databasen (UPDATE)
-    @Override
-    public Director update(Director director) {
+    // CREATE
+    public DirectorDTO createDirector(DirectorDTO directorDTO) {
+        Director director = directorDTO.toEntity();
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            Director existingDirector = em.find(Director.class, director.getName());  // Finder Director ved navn (ID)
-            if (existingDirector == null) {
-                throw new IllegalArgumentException("Director med navn " + director.getName() + " blev ikke fundet.");
+            em.persist(director);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+        return DirectorDTO.fromEntity(director);
+    }
+
+    // READ BY ID
+    public DirectorDTO getDirectorById(Long id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            Director director = em.find(Director.class, id);
+            return director != null ? DirectorDTO.fromEntity(director) : null;
+        } finally {
+            em.close();
+        }
+    }
+
+    // UPDATE
+    public DirectorDTO updateDirector(DirectorDTO directorDTO) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            Director director = em.find(Director.class, directorDTO.getId());
+            if (director == null) {
+                throw new IllegalArgumentException("Director with ID " + directorDTO.getId() + " not found.");
             }
 
-            existingDirector.setName(director.getName());  // Opdaterer directorens navn
+            // Update basic fields
+            director.setName(directorDTO.getName());
 
-            em.merge(existingDirector);  // Slår opdateringerne sammen med eksisterende data
-            em.getTransaction().commit();  // Committer transaktionen
-            return existingDirector;  // Returnerer den opdaterede director
+            em.merge(director);
+            em.getTransaction().commit();
+            return DirectorDTO.fromEntity(director);
 
         } catch (Exception e) {
             if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();  // Ruller tilbage, hvis der er en fejl
+                em.getTransaction().rollback();
             }
-            throw e;  // Kaster undtagelsen videre
+            throw e;
         } finally {
-            em.close();  // Lukker EntityManager
+            em.close();
         }
     }
 
-    // Finder en Director ved navn (READ)
-    @Override
-    public Director findById(Long id) {
-        try (EntityManager em = emf.createEntityManager()) {
-            return em.find(Director.class, id);  // Finder og returnerer Director ved navn (ID)
-        }
-    }
-
-    // Henter alle Director-objekter fra databasen (READ ALL)
-    @Override
-    public List<Director> findAll() {
-        try (EntityManager em = emf.createEntityManager()) {
-            return em.createQuery("SELECT d FROM Director d", Director.class).getResultList();  // Henter alle Director-objekter
-        }
-    }
-
-    // Sletter en Director ved navn (DELETE)
-    @Override
-    public void delete(Long id) {
+    // DELETE
+    public void deleteDirector(Long id) {
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();
-            Director director = em.find(Director.class, id);  // Finder Director ved navn (ID)
+            Director director = em.find(Director.class, id);
             if (director != null) {
-                em.remove(director);  // Sletter director, hvis den findes
+                em.remove(director);
+                em.getTransaction().commit();
             }
-            em.getTransaction().commit();  // Committer transaktionen
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw e;
         } finally {
-            em.close();  // Lukker EntityManager
+            em.close();
+        }
+    }
+
+    // GET ALL DIRECTORS
+    public List<DirectorDTO> getAllDirectors() {
+        EntityManager em = emf.createEntityManager();
+        try {
+            // Use JPQL to select the Director entity
+            TypedQuery<Director> query = em.createQuery("SELECT d FROM Director d", Director.class);
+            List<Director> directors = query.getResultList();
+            // Convert the list of entities to DTOs
+            return directors.stream().map(DirectorDTO::fromEntity).toList();
+        } finally {
+            em.close();
         }
     }
 }
