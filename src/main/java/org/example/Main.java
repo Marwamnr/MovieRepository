@@ -48,7 +48,6 @@ public class Main {
         // Hent og persister film
         MovieService movieService = new MovieService();
         List<MovieDTO> movies = movieService.fetchMovies();
-        MovieMapper movieMapper = new MovieMapper();
 
         EntityManager em = emf.createEntityManager();
         try {

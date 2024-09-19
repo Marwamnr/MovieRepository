@@ -1,8 +1,5 @@
 package org.example.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.dtos.GenreDTO;
-import org.example.dtos.GenreResponseDTO;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,19 +7,33 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.dtos.GenreDTO;
+import org.example.dtos.GenreResponseDTO;
 
 public class GenreService {
 
-    // API-endpoint til at hente genrer
-    private static final String GENRE_ENDPOINT = "https://api.themoviedb.org/3/genre/movie/list?api_key=f0cae1f38d73242e49780b68affbaf65&language=da";
+    // Hent API-nøgle fra miljøvariabel
+    public static String apiKey = System.getenv("API_KEY");
+
+    // API-endpoint til at hente genrer, sprog er sat til dansk (da)
+    private static final String GENRE_ENDPOINT = "https://api.themoviedb.org/3/genre/movie/list?language=da";
 
     // Metode til at hente genrer fra API
     public List<GenreDTO> fetchGenres() {
         try {
+            // Kontroller om API-nøglen er korrekt indsat
+            if (apiKey == null || apiKey.isEmpty()) {
+                throw new IllegalStateException("API_KEY miljøvariablen er ikke sat.");
+            }
+
+            // Dynamisk opbygning af URL med API-nøgle
+            String urlWithApiKey = GENRE_ENDPOINT + "&api_key=" + apiKey;
+
             // Opret HttpClient og HttpRequest
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(GENRE_ENDPOINT))
+                    .uri(new URI(urlWithApiKey))  // Brug den dynamisk genererede URL
                     .GET()
                     .build();
 
