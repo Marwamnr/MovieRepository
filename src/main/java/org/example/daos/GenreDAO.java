@@ -2,45 +2,41 @@ package org.example.daos;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
 import org.example.dtos.GenreDTO;
+import org.example.dtos.MovieDTO;
 import org.example.entities.Genre;
+import org.example.entities.Movie;
 
 import java.util.List;
 
-/*public class GenreDAO {
+public class GenreDAO {
 
-    private static GenreDAO instance;
-    private EntityManagerFactory emf;
+    private final EntityManagerFactory emf;
 
     public GenreDAO(EntityManagerFactory emf) {
         this.emf = emf;
     }
 
-    public static GenreDAO getInstance(EntityManagerFactory emf) {
-        if (instance == null) {
-            instance = new GenreDAO(emf);
-        }
-        return instance;
-    }
-
     // CREATE
     public GenreDTO createGenre(GenreDTO genreDTO) {
-        Genre genre = genreDTO.toEntity();
         EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
         try {
-            em.getTransaction().begin();
+            tx.begin();
+            Genre genre = genreDTO.toEntity();
             em.persist(genre);
-            em.getTransaction().commit();
+            tx.commit();
+            return GenreDTO.fromEntity(genre);
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tx.isActive()) {
+                tx.rollback();
             }
             throw e;
         } finally {
             em.close();
         }
-        return GenreDTO.fromEntity(genre);
     }
 
     // READ BY ID
@@ -57,24 +53,20 @@ import java.util.List;
     // UPDATE
     public GenreDTO updateGenre(GenreDTO genreDTO) {
         EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
         try {
-            em.getTransaction().begin();
-
+            tx.begin();
             Genre genre = em.find(Genre.class, genreDTO.getId());
             if (genre == null) {
                 throw new IllegalArgumentException("Genre with ID " + genreDTO.getId() + " not found.");
             }
-
-            // Update basic fields
             genre.setName(genreDTO.getName());
-
             em.merge(genre);
-            em.getTransaction().commit();
+            tx.commit();
             return GenreDTO.fromEntity(genre);
-
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tx.isActive()) {
+                tx.rollback();
             }
             throw e;
         } finally {
@@ -85,16 +77,17 @@ import java.util.List;
     // DELETE
     public void deleteGenre(Long id) {
         EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
         try {
-            em.getTransaction().begin();
+            tx.begin();
             Genre genre = em.find(Genre.class, id);
             if (genre != null) {
                 em.remove(genre);
-                em.getTransaction().commit();
+                tx.commit();
             }
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tx.isActive()) {
+                tx.rollback();
             }
             throw e;
         } finally {
@@ -108,11 +101,23 @@ import java.util.List;
         try {
             TypedQuery<Genre> query = em.createQuery("SELECT g FROM Genre g", Genre.class);
             List<Genre> genres = query.getResultList();
-            return genres.stream()
-                    .map(GenreDTO::fromEntity)
-                    .toList();
+            return genres.stream().map(GenreDTO::fromEntity).toList();
         } finally {
             em.close();
         }
     }
-}*/
+
+        // GET MOVIES BY GENRE
+        public List<MovieDTO> getMoviesByGenre(Long genreId) {
+            EntityManager em = emf.createEntityManager();
+            try {
+                TypedQuery<Movie> query = em.createQuery(
+                        "SELECT m FROM Movie m JOIN m.genres g WHERE g.id = :genreId", Movie.class);
+                query.setParameter("genreId", genreId);
+                List<Movie> movies = query.getResultList();
+                return movies.stream().map(MovieDTO::new).toList();
+            } finally {
+                em.close();
+            }
+        }
+}
