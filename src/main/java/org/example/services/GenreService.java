@@ -23,7 +23,6 @@ public class GenreService {
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(GENRE_ENDPOINT))
-                    .version(HttpClient.Version.HTTP_1_1)
                     .GET()
                     .build();
 

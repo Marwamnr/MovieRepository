@@ -19,10 +19,10 @@ public class Director {
     private Long id;  // Instruktørens unikke ID.
 
     private String name;  // Instruktørens navn.
-
+/*
     @OneToMany(mappedBy = "director", cascade = CascadeType.ALL)
     private Set<Movie> movies = new HashSet<>();  // Liste over film, instruktøren har lavet.
-
+*/
     // Tom konstruktør kræves af JPA for at kunne oprette objekter automatisk.
     public Director() {
     }
