@@ -3,7 +3,6 @@ package org.example.dtos;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.example.entities.Actor;
 
 import java.util.List;
@@ -24,11 +23,16 @@ public class ActorDTO {
         return actor;
     }
 
-    /*public static ActorDTO fromEntity(Actor actor) {
+    public static ActorDTO fromEntity(Actor actor) {
+        if (actor == null) {
+            return null;
+        }
         return new ActorDTO(
                 actor.getId(),
                 actor.getName(),
-                actor.getMovies().stream().map(MovieDTO::fromEntity).collect(Collectors.toList())
-        );*/
+                actor.getMovies().stream()
+                        .map(MovieDTO::fromEntity)
+                        .collect(Collectors.toList())
+        );
     }
-
+}
