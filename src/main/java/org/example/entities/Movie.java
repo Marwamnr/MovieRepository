@@ -1,16 +1,13 @@
 package org.example.entities;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.dtos.MovieDTO;
-
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -18,13 +15,16 @@ import java.util.stream.Collectors;
 public class Movie {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
     private String release_date;
-    private double rating;
+    private double rating;  // This field represents the movie rating
+    private double popularity;  // Added popularity field
+
     @Transient
-    private List<Integer> genresIds = new ArrayList<>();
+    private List<Integer> genreIds = new ArrayList<>();
 
     @ManyToMany
     private Set<Actor> actors = new HashSet<>();
@@ -32,24 +32,21 @@ public class Movie {
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<Genre> genres = new HashSet<>();
 
+    @ManyToOne
+    @JoinColumn(name = "director_id")
+    private Director director;
 
-    public Movie(Long id, String title, String release_date, double rating, Set<Actor> actors, Set<Genre> genres, Director director) {
+    public Movie() {
+    }
+
+    public Movie(Long id, String title, String release_date, double rating, double popularity, Set<Actor> actors, Set<Genre> genres, Director director) {
         this.id = id;
         this.title = title;
         this.release_date = release_date;
-        this.rating = rating;
+        this.rating = rating;  // Initialize rating
+        this.popularity = popularity;  // Initialize popularity
         this.actors = actors;
         this.genres = genres;
-    }
-
-    public Movie(MovieDTO movieDTO) {
-        this.id = movieDTO.getId();
-        this.title = movieDTO.getTitle();
-        this.release_date = movieDTO.getRelease_date();
-        this.rating = movieDTO.getVote_average();
-        this.genresIds = movieDTO.getGenre_ids();
-    }
-
-    public Movie() {
+        this.director = director;
     }
 }
