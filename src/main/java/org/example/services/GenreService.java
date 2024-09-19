@@ -8,8 +8,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.daos.GenreDAO;
 import org.example.dtos.GenreDTO;
 import org.example.dtos.GenreResponseDTO;
+import org.example.dtos.MovieDTO;
 
 public class GenreService {
 
@@ -18,6 +20,12 @@ public class GenreService {
 
     // API-endpoint til at hente genrer, sprog er sat til dansk (da)
     private static final String GENRE_ENDPOINT = "https://api.themoviedb.org/3/genre/movie/list?language=da";
+
+    private final GenreDAO genreDAO;
+
+    public GenreService(GenreDAO genreDAO) {
+        this.genreDAO = genreDAO;
+    }
 
     // Metode til at hente genrer fra API
     public List<GenreDTO> fetchGenres() {
@@ -65,5 +73,26 @@ public class GenreService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    // CRUD operations using GenreDAO
+    public GenreDTO getGenreById(Long id) {
+        return genreDAO.getGenreById(id);
+    }
+
+    public GenreDTO updateGenre(GenreDTO genreDTO) {
+        return genreDAO.updateGenre(genreDTO);
+    }
+
+    public void deleteGenre(Long id) {
+        genreDAO.deleteGenre(id);
+    }
+
+    public List<GenreDTO> getAllGenres() {
+        return genreDAO.getAllGenres();
+    }
+
+    public List<MovieDTO> getMoviesByGenre(Long genreId) {
+        return genreDAO.getMoviesByGenre(genreId);
     }
 }
