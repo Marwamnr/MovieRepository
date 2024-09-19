@@ -10,18 +10,17 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@EqualsAndHashCode(of = "id")  // Generer equals() og hashCode() baseret på id for at sikre korrekt funktionalitet
-// i datastrukturer som HashSet og HashMap, hvor objektets identitet er afgørende.
+@EqualsAndHashCode(of = "id")
 public class Genre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // Genrens unikke ID.
+    private Long id;  // Genre's unique ID.
 
-    private String name;  // Genrens navn.
+    private String name;  // Genre's name.
 
     @ManyToMany(mappedBy = "genres")
-    private Set<Movie> movies = new HashSet<>();  // Liste over film i genren.
+    private Set<Movie> movies = new HashSet<>();  // Set of movies in this genre.
 
     public Genre() {
     }
