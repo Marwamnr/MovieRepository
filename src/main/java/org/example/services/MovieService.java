@@ -1,6 +1,7 @@
 package org.example.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.daos.MovieDAO;
 import org.example.dtos.MovieDTO;
 import org.example.dtos.MovieResponseDTO;
 
@@ -23,6 +24,12 @@ public class MovieService {
     public static final String FETCH_DANISH_MOVIES = "https://api.themoviedb.org/3/discover/movie";
     public static final int MAX_MOVIES = 1146; // Maksimalt antal film
     public static final String RELEASE_DATE_START = "2019-01-01"; // Startdato for de seneste 5 år
+
+    private final MovieDAO movieDAO;
+
+    public MovieService(MovieDAO movieDAO) {
+        this.movieDAO = movieDAO;
+    }
 
     public List<MovieDTO> fetchMovies() {
         List<MovieDTO> allMovies = new ArrayList<>();
@@ -84,6 +91,56 @@ public class MovieService {
         }
 
         return allMovies; // Returner de hentede film
+    }
+
+    // Create a new movie
+    public MovieDTO createMovie(MovieDTO movieDTO) {
+        return movieDAO.createMovie(movieDTO);
+    }
+
+    // Read a movie by ID
+    public MovieDTO getMovieById(Long id) {
+        return movieDAO.getMovieById(id);
+    }
+
+    // Update an existing movie
+    public MovieDTO updateMovie(MovieDTO movieDTO) {
+        return movieDAO.updateMovie(movieDTO);
+    }
+
+    // Delete a movie by ID
+    public void deleteMovie(Long id) {
+        movieDAO.deleteMovie(id);
+    }
+
+    // Get all movies
+    public List<MovieDTO> getAllMovies() {
+        return movieDAO.getAllMovies();
+    }
+
+    // Search movies by title
+    public List<MovieDTO> searchMoviesByTitle(String title) {
+        return movieDAO.searchMoviesByTitle(title);
+    }
+
+    // Get total average rating of all movies
+    public double getTotalAverageRating() {
+        return movieDAO.getAverageRating();
+    }
+
+    // Get top-10 lowest rated movies
+    public List<MovieDTO> getTop10LowestRatedMovies() {
+        return movieDAO.getTop10LowestRatedMovies();
+    }
+
+    // Get top-10 highest rated movies
+    public List<MovieDTO> getTop10HighestRatedMovies() {
+        return movieDAO.getTop10HighestRatedMovies();
+    }
+
+    // Get top-10 most popular movies
+    public List<MovieDTO> getTop10MostPopularMovies() {
+        return movieDAO.getTop10MostPopularMovies();
     }
 }
 
