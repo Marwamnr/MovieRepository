@@ -2,45 +2,39 @@ package org.example.daos;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
 import org.example.dtos.ActorDTO;
 import org.example.entities.Actor;
 
 import java.util.List;
 
-/*public class ActorDAO {
+public class ActorDAO {
 
-    private static ActorDAO instance;
-    private EntityManagerFactory emf;
+    private final EntityManagerFactory emf;
 
     public ActorDAO(EntityManagerFactory emf) {
         this.emf = emf;
     }
 
-    public static ActorDAO getInstance(EntityManagerFactory emf) {
-        if (instance == null) {
-            instance = new ActorDAO(emf);
-        }
-        return instance;
-    }
-
     // CREATE
     public ActorDTO createActor(ActorDTO actorDTO) {
-        Actor actor = actorDTO.toEntity();
         EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
         try {
-            em.getTransaction().begin();
+            tx.begin();
+            Actor actor = actorDTO.toEntity();
             em.persist(actor);
-            em.getTransaction().commit();
+            tx.commit();
+            return ActorDTO.fromEntity(actor);
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tx.isActive()) {
+                tx.rollback();
             }
             throw e;
         } finally {
             em.close();
         }
-        return ActorDTO.fromEntity(actor);
     }
 
     // READ BY ID
@@ -57,24 +51,20 @@ import java.util.List;
     // UPDATE
     public ActorDTO updateActor(ActorDTO actorDTO) {
         EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
         try {
-            em.getTransaction().begin();
-
+            tx.begin();
             Actor actor = em.find(Actor.class, actorDTO.getId());
             if (actor == null) {
                 throw new IllegalArgumentException("Actor with ID " + actorDTO.getId() + " not found.");
             }
-
-            // Update basic fields
             actor.setName(actorDTO.getName());
-
             em.merge(actor);
-            em.getTransaction().commit();
+            tx.commit();
             return ActorDTO.fromEntity(actor);
-
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tx.isActive()) {
+                tx.rollback();
             }
             throw e;
         } finally {
@@ -85,16 +75,17 @@ import java.util.List;
     // DELETE
     public void deleteActor(Long id) {
         EntityManager em = emf.createEntityManager();
+        EntityTransaction tx = em.getTransaction();
         try {
-            em.getTransaction().begin();
+            tx.begin();
             Actor actor = em.find(Actor.class, id);
             if (actor != null) {
                 em.remove(actor);
-                em.getTransaction().commit();
+                tx.commit();
             }
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tx.isActive()) {
+                tx.rollback();
             }
             throw e;
         } finally {
@@ -108,11 +99,10 @@ import java.util.List;
         try {
             TypedQuery<Actor> query = em.createQuery("SELECT a FROM Actor a", Actor.class);
             List<Actor> actors = query.getResultList();
-            return actors.stream()
-                    .map(ActorDTO::fromEntity)
-                    .toList();
+            return actors.stream().map(ActorDTO::fromEntity).toList();
         } finally {
             em.close();
         }
     }
-}*/
+}
+
