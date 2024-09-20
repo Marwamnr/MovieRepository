@@ -1,13 +1,11 @@
 package org.example.dtos;
 
-import lombok.*;
-import java.util.List;
+import lombok.*; // Importerer alle lombok-annotationer
+import java.util.List; // Importerer List
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
+@Data // Genererer getter, setter, toString, equals, og hashCode metoder
+@AllArgsConstructor // Genererer en konstruktør med alle felter
+@NoArgsConstructor // Genererer en standard konstruktør
 public class GenreResponseDTO {
-    private List<GenreDTO> genres;
+    private List<GenreDTO> genres; // Liste over genrer i DTO-format
 }
