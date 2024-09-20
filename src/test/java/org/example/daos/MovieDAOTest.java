@@ -2,7 +2,7 @@ package org.example.daos;
 
 import jakarta.persistence.EntityManagerFactory;
 import org.example.config.HibernateConfig;
-import org.example.dtos.MovieDTO; 
+import org.example.dtos.MovieDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
