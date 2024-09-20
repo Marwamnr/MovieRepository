@@ -12,7 +12,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MovieService {
 
@@ -143,4 +145,5 @@ public class MovieService {
         return movieDAO.getTop10MostPopularMovies();
     }
 }
+
 

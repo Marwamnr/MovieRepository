@@ -29,7 +29,7 @@ public class MovieDTO {
     private double vote_average;
     private int vote_count;
     private List<GenreDTO> genres = new ArrayList<>();  // Initialize with an empty list
-    private List<ActorDTO> actors = new ArrayList<>();   // Initialize with an empty list
+    private List<CastDTO> actors = new ArrayList<>();   // Initialize with an empty list
     private DirectorDTO director;
 
     public MovieDTO() {
@@ -43,7 +43,7 @@ public class MovieDTO {
         this.vote_count = movie.getVoteCount(); // Add this line
         this.popularity = movie.getPopularity();
         this.genres = movie.getGenres().stream().map(GenreDTO::fromEntity).collect(Collectors.toList());
-        this.actors = movie.getActors().stream().map(ActorDTO::fromEntity).collect(Collectors.toList());
+        this.actors = movie.getActors().stream().map(CastDTO::fromEntity).collect(Collectors.toList());
         this.director = movie.getDirector() != null ? DirectorDTO.fromEntity(movie.getDirector()) : null;
     }
 
@@ -60,7 +60,7 @@ public class MovieDTO {
         movie.setPopularity(this.popularity);
         movie.setVoteCount(this.vote_count); // Set vote count here
         movie.setGenres(this.genres.stream().map(GenreDTO::toEntity).collect(Collectors.toSet()));
-        movie.setActors(this.actors.stream().map(ActorDTO::toEntity).collect(Collectors.toSet()));
+        movie.setActors(this.actors.stream().map(CastDTO::toEntity).collect(Collectors.toSet()));
         movie.setDirector(this.director != null ? this.director.toEntity() : null);
         return movie;
     }

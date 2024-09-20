@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-import org.example.dtos.ActorDTO;
+import org.example.dtos.CastDTO;
 import org.example.entities.Actor;
 
 import java.util.List;
@@ -13,12 +13,14 @@ public class ActorDAO {
 
     private final EntityManagerFactory emf;
 
+
+
     public ActorDAO(EntityManagerFactory emf) {
         this.emf = emf;
     }
 
     // CREATE
-    public ActorDTO createActor(ActorDTO actorDTO) {
+    public CastDTO createActor(CastDTO actorDTO) {
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -26,7 +28,7 @@ public class ActorDAO {
             Actor actor = actorDTO.toEntity();
             em.persist(actor);
             tx.commit();
-            return ActorDTO.fromEntity(actor);
+            return CastDTO.fromEntity(actor);
         } catch (Exception e) {
             if (tx.isActive()) {
                 tx.rollback();
@@ -38,18 +40,18 @@ public class ActorDAO {
     }
 
     // READ BY ID
-    public ActorDTO getActorById(Long id) {
+    public CastDTO getActorById(Long id) {
         EntityManager em = emf.createEntityManager();
         try {
             Actor actor = em.find(Actor.class, id);
-            return actor != null ? ActorDTO.fromEntity(actor) : null;
+            return actor != null ? CastDTO.fromEntity(actor) : null;
         } finally {
             em.close();
         }
     }
 
     // UPDATE
-    public ActorDTO updateActor(ActorDTO actorDTO) {
+    public CastDTO updateActor(CastDTO actorDTO) {
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -61,7 +63,7 @@ public class ActorDAO {
             actor.setName(actorDTO.getName());
             em.merge(actor);
             tx.commit();
-            return ActorDTO.fromEntity(actor);
+            return CastDTO.fromEntity(actor);
         } catch (Exception e) {
             if (tx.isActive()) {
                 tx.rollback();
@@ -94,12 +96,12 @@ public class ActorDAO {
     }
 
     // GET ALL ACTORS
-    public List<ActorDTO> getAllActors() {
+    public List<CastDTO> getAllActors() {
         EntityManager em = emf.createEntityManager();
         try {
             TypedQuery<Actor> query = em.createQuery("SELECT a FROM Actor a", Actor.class);
             List<Actor> actors = query.getResultList();
-            return actors.stream().map(ActorDTO::fromEntity).toList();
+            return actors.stream().map(CastDTO::fromEntity).toList();
         } finally {
             em.close();
         }

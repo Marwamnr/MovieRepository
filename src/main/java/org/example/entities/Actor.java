@@ -4,26 +4,47 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@EqualsAndHashCode(of = "id")  // Generer equals() og hashCode() baseret på id for at sikre korrekt funktionalitet
-// i datastrukturer som HashSet og HashMap, hvor objektets identitet er afgørende.
+@EqualsAndHashCode(of = "id")
 public class Actor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // Skuespillerens unikke ID.
+    private Long id;
 
-    private String name;  // Skuespillerens navn.
+    private String name;
+
+    private String character;
+
+    private String department;
 
     @ManyToMany(mappedBy = "actors")
-    private Set<Movie> movies = new HashSet<>();  // Liste over film, skuespilleren er med i.
+    private Set<Movie> movies = new HashSet<>();
 
-    // Tom konstruktør kræves af JPA for at kunne oprette objekter automatisk.
+    public Actor(long id, String name, String character, String department) {
+        this.id = id;
+        this.name = name;
+        this.character = character;
+        this.department = department;
+    }
+
     public Actor() {
+
+    }
+
+
+    @Override
+    public String toString() {
+        return "Actor{" +
+                "name='" + name + '\'' +
+                ", character='" + character + '\'' +
+                '}';
     }
 }
+
