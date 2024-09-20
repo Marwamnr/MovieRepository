@@ -104,7 +104,7 @@ public class MovieDAO {
     public List<MovieDTO> getAllMovies() {
         EntityManager em = emf.createEntityManager();
         try {
-            return em.createQuery("SELECT m FROM Movie m JOIN FETCH m.genres JOIN FETCH m.actors JOIN FETCH m.director", Movie.class)
+            return em.createQuery("SELECT m FROM Movie m JOIN FETCH m.genres", Movie.class)
                     .getResultList()
                     .stream()
                     .map(MovieDTO::fromEntity)
@@ -140,12 +140,12 @@ public class MovieDAO {
         }
     }
 
-    // GET TOP-10 LOWEST RATED MOVIES
+    // GET TOP-10 LOWEST RATED MOVIES (ordered by vote count)
     public List<MovieDTO> getTop10LowestRatedMovies() {
         EntityManager em = emf.createEntityManager();
         try {
             TypedQuery<Movie> query = em.createQuery(
-                    "SELECT m FROM Movie m ORDER BY m.rating ASC", Movie.class);
+                    "SELECT m FROM Movie m ORDER BY m.voteCount ASC, m.rating ASC", Movie.class);
             query.setMaxResults(10);
             List<Movie> movies = query.getResultList();
             return movies.stream().map(MovieDTO::new).toList();
@@ -154,12 +154,12 @@ public class MovieDAO {
         }
     }
 
-    // GET TOP-10 HIGHEST RATED MOVIES
+    // GET TOP-10 HIGHEST RATED MOVIES (ordered by vote count)
     public List<MovieDTO> getTop10HighestRatedMovies() {
         EntityManager em = emf.createEntityManager();
         try {
             TypedQuery<Movie> query = em.createQuery(
-                    "SELECT m FROM Movie m ORDER BY m.rating DESC", Movie.class);
+                    "SELECT m FROM Movie m ORDER BY m.voteCount DESC, m.rating DESC", Movie.class);
             query.setMaxResults(10);
             List<Movie> movies = query.getResultList();
             return movies.stream().map(MovieDTO::new).toList();
@@ -167,6 +167,7 @@ public class MovieDAO {
             em.close();
         }
     }
+
 
     // GET TOP-10 MOST POPULAR MOVIES
     public List<MovieDTO> getTop10MostPopularMovies() {

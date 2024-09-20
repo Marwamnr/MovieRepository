@@ -22,6 +22,7 @@ public class Movie {
     private String release_date;
     private double rating;  // This field represents the movie rating
     private double popularity;  // Added popularity field
+    private int voteCount;  // Added vote count field
 
     @Transient
     private List<Integer> genreIds = new ArrayList<>();
@@ -39,12 +40,14 @@ public class Movie {
     public Movie() {
     }
 
-    public Movie(Long id, String title, String release_date, double rating, double popularity, Set<Actor> actors, Set<Genre> genres, Director director) {
+    // Constructor with voteCount
+    public Movie(Long id, String title, String release_date, double rating, double popularity, int voteCount, Set<Actor> actors, Set<Genre> genres, Director director) {
         this.id = id;
         this.title = title;
         this.release_date = release_date;
         this.rating = rating;  // Initialize rating
         this.popularity = popularity;  // Initialize popularity
+        this.voteCount = voteCount;  // Initialize vote count
         this.actors = actors;
         this.genres = genres;
         this.director = director;
