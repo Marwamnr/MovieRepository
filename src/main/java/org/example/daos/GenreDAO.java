@@ -13,111 +13,111 @@ import java.util.List;
 
 public class GenreDAO {
 
-    private final EntityManagerFactory emf;
+    private final EntityManagerFactory emf; // Initialiserer EntityManagerFactory
 
     public GenreDAO(EntityManagerFactory emf) {
-        this.emf = emf;
+        this.emf = emf; // Gemmer EntityManagerFactory
     }
 
-    // CREATE
+    // Opretter en ny genre
     public GenreDTO createGenre(GenreDTO genreDTO) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
+        EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
-            tx.begin();
-            Genre genre = genreDTO.toEntity();
-            em.persist(genre);
-            tx.commit();
-            return GenreDTO.fromEntity(genre);
+            tx.begin(); // Starter transaktionen
+            Genre genre = genreDTO.toEntity(); // Konverterer DTO til entitet
+            em.persist(genre); // Gemmer genren
+            tx.commit(); // Bekræfter transaktionen
+            return GenreDTO.fromEntity(genre); // Returnerer DTO
         } catch (Exception e) {
             if (tx.isActive()) {
-                tx.rollback();
+                tx.rollback(); // Ruller tilbage ved fejl
             }
-            throw e;
+            throw e; // Kaster fejl videre
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // READ BY ID
+    // Henter genre efter ID
     public GenreDTO getGenreById(Long id) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
-            Genre genre = em.find(Genre.class, id);
-            return genre != null ? GenreDTO.fromEntity(genre) : null;
+            Genre genre = em.find(Genre.class, id); // Finder genren
+            return genre != null ? GenreDTO.fromEntity(genre) : null; // Returnerer DTO eller null
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // UPDATE
+    // Opdaterer en eksisterende genre
     public GenreDTO updateGenre(GenreDTO genreDTO) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
+        EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
-            tx.begin();
-            Genre genre = em.find(Genre.class, genreDTO.getId());
+            tx.begin(); // Starter transaktionen
+            Genre genre = em.find(Genre.class, genreDTO.getId()); // Finder genren
             if (genre == null) {
-                throw new IllegalArgumentException("Genre with ID " + genreDTO.getId() + " not found.");
+                throw new IllegalArgumentException("Genre with ID " + genreDTO.getId() + " not found."); // Kaster fejl hvis ikke fundet
             }
-            genre.setName(genreDTO.getName());
-            em.merge(genre);
-            tx.commit();
-            return GenreDTO.fromEntity(genre);
+            genre.setName(genreDTO.getName()); // Opdaterer navn
+            em.merge(genre); // Merges ændringer
+            tx.commit(); // Bekræfter transaktionen
+            return GenreDTO.fromEntity(genre); // Returnerer DTO
         } catch (Exception e) {
             if (tx.isActive()) {
-                tx.rollback();
+                tx.rollback(); // Ruller tilbage ved fejl
             }
-            throw e;
+            throw e; // Kaster fejl videre
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // DELETE
+    // Sletter en genre
     public void deleteGenre(Long id) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
+        EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
-            tx.begin();
-            Genre genre = em.find(Genre.class, id);
+            tx.begin(); // Starter transaktionen
+            Genre genre = em.find(Genre.class, id); // Finder genren
             if (genre != null) {
-                em.remove(genre);
-                tx.commit();
+                em.remove(genre); // Fjerner genren
+                tx.commit(); // Bekræfter transaktionen
             }
         } catch (Exception e) {
             if (tx.isActive()) {
-                tx.rollback();
+                tx.rollback(); // Ruller tilbage ved fejl
             }
-            throw e;
+            throw e; // Kaster fejl videre
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // GET ALL GENRES
+    // Henter alle genrer
     public List<GenreDTO> getAllGenres() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
-            TypedQuery<Genre> query = em.createQuery("SELECT g FROM Genre g", Genre.class);
-            List<Genre> genres = query.getResultList();
-            return genres.stream().map(GenreDTO::fromEntity).toList();
+            TypedQuery<Genre> query = em.createQuery("SELECT g FROM Genre g", Genre.class); // Opretter forespørgsel
+            List<Genre> genres = query.getResultList(); // Henter resultater
+            return genres.stream().map(GenreDTO::fromEntity).toList(); // Konverterer til liste af DTO'er
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-        // GET MOVIES BY GENRE
-        public List<MovieDTO> getMoviesByGenre(Long genreId) {
-            EntityManager em = emf.createEntityManager();
-            try {
-                TypedQuery<Movie> query = em.createQuery(
-                        "SELECT m FROM Movie m JOIN m.genres g WHERE g.id = :genreId", Movie.class);
-                query.setParameter("genreId", genreId);
-                List<Movie> movies = query.getResultList();
-                return movies.stream().map(MovieDTO::new).toList();
-            } finally {
-                em.close();
-            }
+    // Henter film efter genre
+    public List<MovieDTO> getMoviesByGenre(Long genreId) {
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
+        try {
+            TypedQuery<Movie> query = em.createQuery(
+                    "SELECT m FROM Movie m JOIN m.genres g WHERE g.id = :genreId", Movie.class); // Opretter forespørgsel med join
+            query.setParameter("genreId", genreId); // Sætter parameter for genre ID
+            List<Movie> movies = query.getResultList(); // Henter resultater
+            return movies.stream().map(MovieDTO::new).toList(); // Konverterer til liste af DTO'er
+        } finally {
+            em.close(); // Lukker EntityManager
         }
+    }
 }

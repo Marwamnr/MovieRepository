@@ -1,15 +1,9 @@
 package org.example.dtos;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.example.entities.Actor;
-import org.example.entities.Genre;
 
-@Data
-@Getter
-@Setter
-
+@Data // Genererer getter, setter, toString, equals, og hashCode metoder
 public class CastDTO {
     private boolean adult;
     private int gender;
@@ -24,20 +18,27 @@ public class CastDTO {
     private String credit_id;
     private int order;
 
+    // Konverterer Actor entitet til CastDTO
     public static CastDTO fromEntity(Actor actor) {
-        return null;
+        if (actor == null) {
+            return null;
+        }
+        CastDTO dto = new CastDTO();
+        dto.setId(actor.getId());
+        dto.setName(actor.getName());
+        dto.setCharacter(actor.getCharacter());
+        dto.setKnown_for_department(actor.getDepartment());
+        return dto;
     }
 
-
+    // Konverterer CastDTO til Actor entitet
     public Actor toEntity() {
-        Actor actor= new Actor();
-
-
-        actor.setId(this.id );
+        Actor actor = new Actor();
+        actor.setId(this.id);
         actor.setName(this.name);
         actor.setCharacter(this.character);
         actor.setDepartment(this.known_for_department);
 
-        return actor;
+        return actor; // Returnerer Actor entitet
     }
 }

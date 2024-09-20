@@ -4,29 +4,29 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-import org.example.dtos.DirectorDTO;
-import org.example.entities.Director;
+import org.example.dtos.CastDTO; // Using CastDTO
+import org.example.entities.Actor;
 
 import java.util.List;
 
-public class DirectorDAO {
+public class CastDAO {
 
     private final EntityManagerFactory emf; // Initialiserer EntityManagerFactory
 
-    public DirectorDAO(EntityManagerFactory emf) {
+    public CastDAO(EntityManagerFactory emf) {
         this.emf = emf; // Gemmer EntityManagerFactory
     }
 
-    // Opretter en ny instruktør
-    public DirectorDTO createDirector(DirectorDTO directorDTO) {
+    // Opretter en ny skuespiller
+    public CastDTO createActor(CastDTO actorDTO) {
         EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
             tx.begin(); // Starter transaktionen
-            Director director = directorDTO.toEntity(); // Konverterer DTO til entitet
-            em.persist(director); // Gemmer instruktøren
+            Actor actor = actorDTO.toEntity(); // Konverterer DTO til entitet
+            em.persist(actor); // Gemmer skuespilleren
             tx.commit(); // Bekræfter transaktionen
-            return DirectorDTO.fromEntity(director); // Returnerer DTO
+            return CastDTO.fromEntity(actor); // Returnerer DTO
         } catch (Exception e) {
             if (tx.isActive()) {
                 tx.rollback(); // Ruller tilbage ved fejl
@@ -37,31 +37,33 @@ public class DirectorDAO {
         }
     }
 
-    // Henter instruktør efter ID
-    public DirectorDTO getDirectorById(Long id) {
+    // Henter skuespiller efter ID
+    public CastDTO getActorById(Long id) {
         EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
-            Director director = em.find(Director.class, id); // Finder instruktøren
-            return director != null ? DirectorDTO.fromEntity(director) : null; // Returnerer DTO eller null
+            Actor actor = em.find(Actor.class, id); // Finder skuespilleren
+            return actor != null ? CastDTO.fromEntity(actor) : null; // Returnerer DTO eller null
         } finally {
             em.close(); // Lukker EntityManager
         }
     }
 
-    // Opdaterer en eksisterende instruktør
-    public DirectorDTO updateDirector(DirectorDTO directorDTO) {
+    // Opdaterer en eksisterende skuespiller
+    public CastDTO updateActor(CastDTO actorDTO) {
         EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
             tx.begin(); // Starter transaktionen
-            Director director = em.find(Director.class, directorDTO.getId()); // Finder instruktøren
-            if (director == null) {
-                throw new IllegalArgumentException("Director with ID " + directorDTO.getId() + " not found."); // Kaster fejl hvis ikke fundet
+            Actor actor = em.find(Actor.class, actorDTO.getId()); // Finder skuespilleren
+            if (actor == null) {
+                throw new IllegalArgumentException("Actor with ID " + actorDTO.getId() + " not found."); // Kaster fejl hvis ikke fundet
             }
-            director.setName(directorDTO.getName()); // Opdaterer navn
-            em.merge(director); // Merges ændringer
+            actor.setName(actorDTO.getName()); // Opdaterer navn
+            actor.setCharacter(actorDTO.getCharacter()); // Opdaterer karakter
+            actor.setDepartment(actorDTO.getKnown_for_department()); // Opdaterer afdeling
+            em.merge(actor); // Merges ændringer
             tx.commit(); // Bekræfter transaktionen
-            return DirectorDTO.fromEntity(director); // Returnerer DTO
+            return CastDTO.fromEntity(actor); // Returnerer DTO
         } catch (Exception e) {
             if (tx.isActive()) {
                 tx.rollback(); // Ruller tilbage ved fejl
@@ -72,15 +74,15 @@ public class DirectorDAO {
         }
     }
 
-    // Sletter en instruktør
-    public void deleteDirector(Long id) {
+    // Sletter en skuespiller
+    public void deleteActor(Long id) {
         EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
             tx.begin(); // Starter transaktionen
-            Director director = em.find(Director.class, id); // Finder instruktøren
-            if (director != null) {
-                em.remove(director); // Fjerner instruktøren
+            Actor actor = em.find(Actor.class, id); // Finder skuespilleren
+            if (actor != null) {
+                em.remove(actor); // Fjerner skuespilleren
                 tx.commit(); // Bekræfter transaktionen
             }
         } catch (Exception e) {
@@ -93,13 +95,13 @@ public class DirectorDAO {
         }
     }
 
-    // Henter alle instruktører
-    public List<DirectorDTO> getAllDirectors() {
+    // Henter alle skuespillere
+    public List<CastDTO> getAllActors() {
         EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
-            TypedQuery<Director> query = em.createQuery("SELECT d FROM Director d", Director.class); // Opretter forespørgsel
-            List<Director> directors = query.getResultList(); // Henter resultater
-            return directors.stream().map(DirectorDTO::fromEntity).toList(); // Konverterer til liste af DTO'er
+            TypedQuery<Actor> query = em.createQuery("SELECT a FROM Actor a", Actor.class); // Opretter forespørgsel
+            List<Actor> actors = query.getResultList(); // Henter resultater
+            return actors.stream().map(CastDTO::fromEntity).toList(); // Konverterer til liste af DTO'er
         } finally {
             em.close(); // Lukker EntityManager
         }

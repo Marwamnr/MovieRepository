@@ -12,175 +12,175 @@ import java.util.stream.Collectors;
 
 public class MovieDAO {
 
-    private final EntityManagerFactory emf;
+    private final EntityManagerFactory emf; // Initialiserer EntityManagerFactory
 
     public MovieDAO(EntityManagerFactory emf) {
-        this.emf = emf;
+        this.emf = emf; // Gemmer EntityManagerFactory
     }
 
-    // CREATE
+    // Opretter en ny film
     public MovieDTO createMovie(MovieDTO movieDTO) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
+        EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
-            tx.begin();
-            Movie movie = movieDTO.toEntity();
-            em.persist(movie);
-            tx.commit();
-            return new MovieDTO(movie);  // Use the constructor to convert the entity back to DTO
+            tx.begin(); // Starter transaktionen
+            Movie movie = movieDTO.toEntity(); // Konverterer DTO til entitet
+            em.persist(movie); // Gemmer filmen
+            tx.commit(); // Bekræfter transaktionen
+            return new MovieDTO(movie); // Returnerer DTO
         } catch (Exception e) {
             if (tx.isActive()) {
-                tx.rollback();
+                tx.rollback(); // Ruller tilbage ved fejl
             }
-            throw e;
+            throw e; // Kaster fejl videre
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // READ BY ID
+    // Henter film efter ID
     public MovieDTO getMovieById(Long id) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
-            Movie movie = em.find(Movie.class, id);
-            return movie != null ? new MovieDTO(movie) : null;
+            Movie movie = em.find(Movie.class, id); // Finder filmen
+            return movie != null ? new MovieDTO(movie) : null; // Returnerer DTO eller null
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // UPDATE
+    // Opdaterer en eksisterende film
     public MovieDTO updateMovie(MovieDTO movieDTO) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
+        EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
-            tx.begin();
-            Movie movie = em.find(Movie.class, movieDTO.getId());
+            tx.begin(); // Starter transaktionen
+            Movie movie = em.find(Movie.class, movieDTO.getId()); // Finder filmen
             if (movie == null) {
-                throw new IllegalArgumentException("Movie with ID " + movieDTO.getId() + " not found.");
+                throw new IllegalArgumentException("Movie with ID " + movieDTO.getId() + " not found."); // Kaster fejl hvis ikke fundet
             }
-            // Update fields
+            // Opdaterer felter
             movie.setTitle(movieDTO.getTitle());
             movie.setRelease_date(movieDTO.getRelease_date());
             movie.setRating(movieDTO.getVote_average());
             movie.setPopularity(movieDTO.getPopularity());
-            // Optionally update other fields or relationships
+            // Optionelt opdater andre felter eller relationer
 
-            em.merge(movie);
-            tx.commit();
-            return new MovieDTO(movie);
+            em.merge(movie); // Merges ændringer
+            tx.commit(); // Bekræfter transaktionen
+            return new MovieDTO(movie); // Returnerer DTO
         } catch (Exception e) {
             if (tx.isActive()) {
-                tx.rollback();
+                tx.rollback(); // Ruller tilbage ved fejl
             }
-            throw e;
+            throw e; // Kaster fejl videre
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // DELETE
+    // Sletter en film
     public void deleteMovie(Long id) {
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
+        EntityTransaction tx = em.getTransaction(); // Henter transaktion
         try {
-            tx.begin();
-            Movie movie = em.find(Movie.class, id);
+            tx.begin(); // Starter transaktionen
+            Movie movie = em.find(Movie.class, id); // Finder filmen
             if (movie != null) {
-                em.remove(movie);
-                tx.commit();
+                em.remove(movie); // Fjerner filmen
+                tx.commit(); // Bekræfter transaktionen
             }
         } catch (Exception e) {
             if (tx.isActive()) {
-                tx.rollback();
+                tx.rollback(); // Ruller tilbage ved fejl
             }
-            throw e;
+            throw e; // Kaster fejl videre
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // GET ALL MOVIES
+    // Henter alle film
     public List<MovieDTO> getAllMovies() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
-            return em.createQuery("SELECT m FROM Movie m JOIN FETCH m.genres", Movie.class)
-                    .getResultList()
+            return em.createQuery("SELECT m FROM Movie m JOIN FETCH m.genres", Movie.class) // Opretter forespørgsel
+                    .getResultList() // Henter resultater
                     .stream()
-                    .map(MovieDTO::fromEntity)
+                    .map(MovieDTO::fromEntity) // Konverterer til liste af DTO'er
                     .collect(Collectors.toList());
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // SEARCH MOVIES BY TITLE
+    // Søger film efter titel
     public List<MovieDTO> searchMoviesByTitle(String title) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
             TypedQuery<Movie> query = em.createQuery(
-                    "SELECT m FROM Movie m WHERE LOWER(m.title) LIKE LOWER(:title)", Movie.class);
-            query.setParameter("title", "%" + title + "%");
-            List<Movie> movies = query.getResultList();
-            return movies.stream().map(MovieDTO::new).toList();
+                    "SELECT m FROM Movie m WHERE LOWER(m.title) LIKE LOWER(:title)", Movie.class); // Opretter forespørgsel
+            query.setParameter("title", "%" + title + "%"); // Sætter parameter for titel
+            List<Movie> movies = query.getResultList(); // Henter resultater
+            return movies.stream().map(MovieDTO::new).toList(); // Konverterer til liste af DTO'er
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // GET AVERAGE RATING
+    // Henter gennemsnitlig vurdering
     public double getAverageRating() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
             TypedQuery<Double> query = em.createQuery(
-                    "SELECT AVG(m.rating) FROM Movie m", Double.class);
-            return query.getSingleResult();
+                    "SELECT AVG(m.rating) FROM Movie m", Double.class); // Opretter forespørgsel for gennemsnit
+            return query.getSingleResult(); // Returnerer gennemsnit
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // GET TOP-10 LOWEST RATED MOVIES (ordered by vote count)
+    // Henter top-10 lavest vurderede film (sorteret efter stemmetal)
     public List<MovieDTO> getTop10LowestRatedMovies() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
             TypedQuery<Movie> query = em.createQuery(
-                    "SELECT m FROM Movie m ORDER BY m.voteCount ASC, m.rating ASC", Movie.class);
-            query.setMaxResults(10);
-            List<Movie> movies = query.getResultList();
-            return movies.stream().map(MovieDTO::new).toList();
+                    "SELECT m FROM Movie m ORDER BY m.voteCount ASC, m.rating ASC", Movie.class); // Opretter forespørgsel
+            query.setMaxResults(10); // Sætter maksimum resultater
+            List<Movie> movies = query.getResultList(); // Henter resultater
+            return movies.stream().map(MovieDTO::new).toList(); // Konverterer til liste af DTO'er
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-    // GET TOP-10 HIGHEST RATED MOVIES (ordered by vote count)
+    // Henter top-10 højest vurderede film (sorteret efter stemmetal)
     public List<MovieDTO> getTop10HighestRatedMovies() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
             TypedQuery<Movie> query = em.createQuery(
-                    "SELECT m FROM Movie m ORDER BY m.voteCount DESC, m.rating DESC", Movie.class);
-            query.setMaxResults(10);
-            List<Movie> movies = query.getResultList();
-            return movies.stream().map(MovieDTO::new).toList();
+                    "SELECT m FROM Movie m ORDER BY m.voteCount DESC, m.rating DESC", Movie.class); // Opretter forespørgsel
+            query.setMaxResults(10); // Sætter maksimum resultater
+            List<Movie> movies = query.getResultList(); // Henter resultater
+            return movies.stream().map(MovieDTO::new).toList(); // Konverterer til liste af DTO'er
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 
-
-    // GET TOP-10 MOST POPULAR MOVIES
+    // Henter top-10 mest populære film
     public List<MovieDTO> getTop10MostPopularMovies() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager(); // Opretter EntityManager
         try {
             TypedQuery<Movie> query = em.createQuery(
-                    "SELECT m FROM Movie m ORDER BY m.popularity DESC", Movie.class);
-            query.setMaxResults(10);
-            List<Movie> movies = query.getResultList();
-            return movies.stream().map(MovieDTO::new).toList();
+                    "SELECT m FROM Movie m ORDER BY m.popularity DESC", Movie.class); // Opretter forespørgsel
+            query.setMaxResults(10); // Sætter maksimum resultater
+            List<Movie> movies = query.getResultList(); // Henter resultater
+            return movies.stream().map(MovieDTO::new).toList(); // Konverterer til liste af DTO'er
         } finally {
-            em.close();
+            em.close(); // Lukker EntityManager
         }
     }
 }
+
 

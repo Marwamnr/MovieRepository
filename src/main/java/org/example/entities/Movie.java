@@ -1,55 +1,53 @@
 package org.example.entities;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import jakarta.persistence.*; // Importerer JPA-annotationer
+import lombok.Data; // Importerer Data annotation fra Lombok
+import java.util.ArrayList; // Importerer ArrayList
+import java.util.HashSet; // Importerer HashSet
+import java.util.List; // Importerer List
+import java.util.Set; // Importerer Set
 
-@Entity
-@Getter
-@Setter
+@Entity // Angiver at klassen er en JPA-entitet
+@Data // Genererer getter, setter, toString, equals, og hashCode metoder
 public class Movie {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id // Angiver ID-feltet som primær nøgle
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Genererer ID automatisk
     private Long id;
 
-    private String title;
-    private String release_date;
-    private double rating;  // This field represents the movie rating
-    private double popularity;  // Added popularity field
-    private int voteCount;  // Added vote count field
+    private String title; // Filmens titel
+    private String release_date; // Udgivelsesdato for filmen
+    private double rating;  // filmens rating
+    private double popularity;  // filmens popularitet
+    private int voteCount;  // antallet af stemmer
 
-    @Transient
-    private List<Integer> genreIds = new ArrayList<>();
+    @Transient // Angiver at dette felt ikke skal gemmes i databasen
+    private List<Integer> genreIds = new ArrayList<>(); // Liste til genre-ID'er
 
-    @ManyToMany
+    @ManyToMany // Mange-til-mange relation til aktører
     private Set<Actor> actors = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}) // Mange-til-mange relation til genrer
     private Set<Genre> genres = new HashSet<>();
 
-    @ManyToOne
-    @JoinColumn(name = "director_id")
+    @ManyToOne // Mange-til-en relation til instruktør
+    @JoinColumn(name = "director_id") // Angiver kolonnenavn i databasen
     private Director director;
 
+    // Tom konstruktør kræves af JPA for at kunne oprette objekter automatisk.
     public Movie() {
     }
 
-    // Constructor with voteCount
+    // Konstruktør med voteCount
     public Movie(Long id, String title, String release_date, double rating, double popularity, int voteCount, Set<Actor> actors, Set<Genre> genres, Director director) {
-        this.id = id;
-        this.title = title;
-        this.release_date = release_date;
-        this.rating = rating;  // Initialize rating
-        this.popularity = popularity;  // Initialize popularity
-        this.voteCount = voteCount;  // Initialize vote count
-        this.actors = actors;
-        this.genres = genres;
-        this.director = director;
+        this.id = id; // Initialisere ID
+        this.title = title; // Initialisere titlen
+        this.release_date = release_date; // Initialisere udgivelsesdato
+        this.rating = rating;  // Initialiserer rating
+        this.popularity = popularity;  // Initialiserer popularitet
+        this.voteCount = voteCount;  // Initialiserer stemmeantal
+        this.actors = actors; // Initialiserer aktører
+        this.genres = genres; // Initialiserer genrer
+        this.director = director; // Initialiserer instruktør
     }
 }
