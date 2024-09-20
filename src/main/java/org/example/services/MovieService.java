@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.daos.MovieDAO;
 import org.example.dtos.MovieDTO;
 import org.example.dtos.MovieResponseDTO;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,33 +11,29 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MovieService {
 
     // API-konstanter
+    public static String apiKey = System.getenv("API_KEY"); // Hent API-nøglen fra miljøvariabler
 
-    public static String apiKey = System.getenv("API_KEY");
-
-
-    public static final String FETCH_DANISH_MOVIES = "https://api.themoviedb.org/3/discover/movie";
+    public static final String FETCH_DANISH_MOVIES = "https://api.themoviedb.org/3/discover/movie"; // URL til at hente danske film
     public static final int MAX_MOVIES = 1146; // Maksimalt antal film
     public static final String RELEASE_DATE_START = "2019-01-01"; // Startdato for de seneste 5 år
 
-    private final MovieDAO movieDAO;
+    private final MovieDAO movieDAO; // DAO til filmoperationer
 
     public MovieService(MovieDAO movieDAO) {
-        this.movieDAO = movieDAO;
+        this.movieDAO = movieDAO; // Initialiser DAO'en
     }
 
     public List<MovieDTO> fetchMovies() {
-        List<MovieDTO> allMovies = new ArrayList<>();
-        HttpClient client = HttpClient.newHttpClient();
-        ObjectMapper objectMapper = new ObjectMapper();
+        List<MovieDTO> allMovies = new ArrayList<>(); // Liste til at gemme hentede film
+        HttpClient client = HttpClient.newHttpClient(); // HTTP-klient til at sende forespørgsler
+        ObjectMapper objectMapper = new ObjectMapper(); // JSON-mapper til konvertering
         int currentPage = 1; // Start ved side 1
-        int totalMoviesFetched = 0; // Holder styr på hvor mange film der er hentet
+        int totalMoviesFetched = 0; // Holder styr på hentede film
 
         try {
             // While-loop til pagination (fortsæt så længe vi ikke har hentet 1146 film)
@@ -55,95 +50,94 @@ public class MovieService {
                         .GET()
                         .build();
 
-                // Send forespørgsel
+                // Send forespørgsel og modtag svar
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-                if (response.statusCode() == 200) {
-                    String json = response.body();
+                if (response.statusCode() == 200) { // Tjek for succesfuld respons
+                    String json = response.body(); // Hent JSON-svaret
 
                     // Konverter JSON-svar til objekt
                     MovieResponseDTO movieResponse = objectMapper.readValue(json, MovieResponseDTO.class);
-                    List<MovieDTO> moviesOnThisPage = movieResponse.getResults();
+                    List<MovieDTO> moviesOnThisPage = movieResponse.getResults(); // Hent film fra svaret
 
                     // Tjek om der er flere film at hente, hvis ikke, stop loopen
                     if (moviesOnThisPage.isEmpty()) {
-                        break;
+                        break; // Stop hvis der ikke er flere film
                     }
 
                     // Tilføj film til samlet liste
                     allMovies.addAll(moviesOnThisPage);
-                    totalMoviesFetched += moviesOnThisPage.size();
+                    totalMoviesFetched += moviesOnThisPage.size(); // Opdater det samlede antal hentede film
 
                     // Hvis vi har hentet mere end 1146 film, fjern overskydende
                     if (totalMoviesFetched > MAX_MOVIES) {
-                        int excessMovies = totalMoviesFetched - MAX_MOVIES;
-                        allMovies = allMovies.subList(0, allMovies.size() - excessMovies);
-                        break;
+                        int excessMovies = totalMoviesFetched - MAX_MOVIES; // Beregn overskydende film
+                        allMovies = allMovies.subList(0, allMovies.size() - excessMovies); // Fjern overskydende film
+                        break; // Stop loop
                     }
 
-                    currentPage++;
+                    currentPage++; // Gå til næste side
 
                 } else {
                     System.out.println("Fejl ved at hente data fra serveren. Statuskode: " + response.statusCode());
-                    break;
+                    break; // Stop ved fejl
                 }
             }
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Håndter undtagelser
         }
 
         return allMovies; // Returner de hentede film
     }
 
-    // Create a new movie
+    // Opret en ny film
     public MovieDTO createMovie(MovieDTO movieDTO) {
-        return movieDAO.createMovie(movieDTO);
+        return movieDAO.createMovie(movieDTO); // Kalder DAO for at oprette film
     }
 
-    // Read a movie by ID
+    // Hent en film efter ID
     public MovieDTO getMovieById(Long id) {
-        return movieDAO.getMovieById(id);
+        return movieDAO.getMovieById(id); // Kalder DAO for at hente film
     }
 
-    // Update an existing movie
+    // Opdater en eksisterende film
     public MovieDTO updateMovie(MovieDTO movieDTO) {
-        return movieDAO.updateMovie(movieDTO);
+        return movieDAO.updateMovie(movieDTO); // Kalder DAO for at opdatere film
     }
 
-    // Delete a movie by ID
+    // Slet en film efter ID
     public void deleteMovie(Long id) {
-        movieDAO.deleteMovie(id);
+        movieDAO.deleteMovie(id); // Kalder DAO for at slette film
     }
 
-    // Get all movies
+    // Hent alle film
     public List<MovieDTO> getAllMovies() {
-        return movieDAO.getAllMovies();
+        return movieDAO.getAllMovies(); // Kalder DAO for at hente alle film
     }
 
-    // Search movies by title
+    // Søg efter film efter titel
     public List<MovieDTO> searchMoviesByTitle(String title) {
-        return movieDAO.searchMoviesByTitle(title);
+        return movieDAO.searchMoviesByTitle(title); // Kalder DAO for at søge film
     }
 
-    // Get total average rating of all movies
+    // Få den samlede gennemsnitsvurdering af alle film
     public double getTotalAverageRating() {
-        return movieDAO.getAverageRating();
+        return movieDAO.getAverageRating(); // Kalder DAO for at hente gennemsnitsvurdering
     }
 
-    // Get top-10 lowest rated movies
+    // Få top-10 lavest vurderede film
     public List<MovieDTO> getTop10LowestRatedMovies() {
-        return movieDAO.getTop10LowestRatedMovies();
+        return movieDAO.getTop10LowestRatedMovies(); // Kalder DAO for at hente lavest vurderede film
     }
 
-    // Get top-10 highest rated movies
+    // Få top-10 højest vurderede film
     public List<MovieDTO> getTop10HighestRatedMovies() {
-        return movieDAO.getTop10HighestRatedMovies();
+        return movieDAO.getTop10HighestRatedMovies(); // Kalder DAO for at hente højest vurderede film
     }
 
-    // Get top-10 most popular movies
+    // Få top-10 mest populære film
     public List<MovieDTO> getTop10MostPopularMovies() {
-        return movieDAO.getTop10MostPopularMovies();
+        return movieDAO.getTop10MostPopularMovies(); // Kalder DAO for at hente mest populære film
     }
 }
-
 
