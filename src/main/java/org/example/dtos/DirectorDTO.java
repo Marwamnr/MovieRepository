@@ -3,7 +3,6 @@ package org.example.dtos;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.example.entities.Director;
 
 import java.util.List;
@@ -25,11 +24,15 @@ public class DirectorDTO {
     }
 
     public static DirectorDTO fromEntity(Director director) {
+        if (director == null) {
+            return null;
+        }
         return new DirectorDTO(
                 director.getId(),
                 director.getName(),
-                director.getMovies().stream().map(MovieDTO::fromEntity).collect(Collectors.toList())
+                director.getMovies().stream()
+                        .map(MovieDTO::new)  // Use the constructor in MovieDTO
+                        .collect(Collectors.toList())
         );
     }
 }
-

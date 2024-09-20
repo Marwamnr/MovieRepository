@@ -3,11 +3,7 @@ package org.example.dtos;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.example.entities.Genre;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -15,7 +11,6 @@ import java.util.stream.Collectors;
 public class GenreDTO {
     private Long id;
     private String name;
-    private List<MovieDTO> movies;
 
     public Genre toEntity() {
         Genre genre = new Genre();
@@ -25,10 +20,12 @@ public class GenreDTO {
     }
 
     public static GenreDTO fromEntity(Genre genre) {
+        if (genre == null) {
+            return null;
+        }
         return new GenreDTO(
                 genre.getId(),
-                genre.getName(),
-                genre.getMovies().stream().map(MovieDTO::fromEntity).collect(Collectors.toList())
+                genre.getName()
         );
     }
 }

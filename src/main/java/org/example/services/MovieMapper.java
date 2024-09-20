@@ -16,10 +16,8 @@ public class MovieMapper {
         Movie movieEntity = new Movie();
 
         movieEntity.setTitle(movieDTO.getTitle());
-        movieEntity.setYear(movieDTO.getRelease_date());
+        //movieEntity.setYear(movieDTO.getRelease_date());
         movieEntity.setRating(movieDTO.getVote_average());
-
-
 
         return movieEntity;
     }

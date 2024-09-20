@@ -1,10 +1,10 @@
 package org.example.entities;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,30 +19,34 @@ public class Movie {
     private Long id;
 
     private String title;
-    private String year;
+    private String release_date;
+    private double rating;  // This field represents the movie rating
+    private double popularity;  // Added popularity field
 
-    private double rating;
+    @Transient
+    private List<Integer> genreIds = new ArrayList<>();
 
     @ManyToMany
     private Set<Actor> actors = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<Genre> genres = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "director_id")
     private Director director;
 
-    public Movie(Long id, String title, String year, double rating, Set<Actor> actors, Set<Genre> genres, Director director) {
+    public Movie() {
+    }
+
+    public Movie(Long id, String title, String release_date, double rating, double popularity, Set<Actor> actors, Set<Genre> genres, Director director) {
         this.id = id;
         this.title = title;
-        this.year = year;
-        this.rating = rating;
+        this.release_date = release_date;
+        this.rating = rating;  // Initialize rating
+        this.popularity = popularity;  // Initialize popularity
         this.actors = actors;
         this.genres = genres;
         this.director = director;
-    }
-
-    public Movie() {
     }
 }
