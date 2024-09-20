@@ -40,6 +40,7 @@ public class MovieDTO {
         this.title = movie.getTitle();
         this.release_date = movie.getRelease_date();
         this.vote_average = movie.getRating();
+        this.vote_count = movie.getVoteCount(); // Add this line
         this.popularity = movie.getPopularity();
         this.genres = movie.getGenres().stream().map(GenreDTO::fromEntity).collect(Collectors.toList());
         this.actors = movie.getActors().stream().map(ActorDTO::fromEntity).collect(Collectors.toList());
@@ -57,9 +58,11 @@ public class MovieDTO {
         movie.setRelease_date(this.release_date);
         movie.setRating(this.vote_average);
         movie.setPopularity(this.popularity);
+        movie.setVoteCount(this.vote_count); // Set vote count here
         movie.setGenres(this.genres.stream().map(GenreDTO::toEntity).collect(Collectors.toSet()));
         movie.setActors(this.actors.stream().map(ActorDTO::toEntity).collect(Collectors.toSet()));
         movie.setDirector(this.director != null ? this.director.toEntity() : null);
         return movie;
     }
+
 }
