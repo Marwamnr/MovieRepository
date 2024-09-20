@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-import org.example.dtos.ActorDTO;
+import org.example.dtos.CastDTO;
 import org.example.entities.Actor;
 
 import java.util.List;

@@ -3,15 +3,16 @@ package org.example;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.example.config.HibernateConfig;
+//import org.example.daos.ActorDAO;
+import org.example.daos.ActorDAO;
 import org.example.daos.GenreDAO;
 import org.example.daos.MovieDAO;
 import org.example.dtos.GenreDTO;
 import org.example.dtos.MovieDTO;
+import org.example.entities.Actor;
 import org.example.entities.Genre;
 import org.example.entities.Movie;
-import org.example.services.GenreService;
-import org.example.services.MovieService;
-import org.example.services.GenreMapper;
+import org.example.services.*;
 
 import java.util.List;
 
@@ -20,15 +21,21 @@ public class Main {
     private static EntityManagerFactory emf;
     private static GenreDAO genreDAO;
     private static MovieDAO movieDAO;
+    public static ActorDAO actorDAO;
     private static GenreService genreService;
     private static MovieService movieService;
+    private static ActorService actorService;
 
     public static void main(String[] args) {
         emf = HibernateConfig.getEntityManagerFactory("movieRepository");
         genreDAO = new GenreDAO(emf);
         movieDAO = new MovieDAO(emf);
+        actorDAO = new ActorDAO(emf);
         genreService = new GenreService(genreDAO);
         movieService = new MovieService(movieDAO);
+        actorService = new ActorService(actorDAO);
+
+
 
         try {
             // Persist genres
@@ -37,9 +44,14 @@ public class Main {
             // Fetch and persist movies
             persistMovies();
 
+            // Fetch and persist Actors
+            persistActors();
+
             // Example usage of DAO methods
             displayAllMovies();
             displayAllGenres();
+            //displayAllActors();
+
             displayMoviesByGenre(1L); // Example genre ID
 
             // CRUD operations
@@ -110,6 +122,52 @@ public class Main {
             em.close();
         }
     }
+
+
+    private static void persistActors() {
+        ActorService actorService = new ActorService(actorDAO);
+        List<Actor> allActors = actorService.fetchAllActors();
+        ActorMapper actorMapper = new ActorMapper();
+
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+
+            //List<Movie> allMovies = getAllMovies();
+
+            for (Actor actor : allActors) {
+
+                Actor actorEntity = actorMapper.toEntity(actor);
+
+
+                for (Movie movieDTO : actor.getMovies()) {
+                    Movie movieEntity = em.find(Movie.class, movieDTO.getId());
+                    if (movieEntity != null) {
+
+                        actorEntity.getMovies().add(movieEntity);
+                        movieEntity.getActors().add(actorEntity);
+                    } else {
+                        System.out.println("Movie not found for ID: " + movieDTO.getId());
+                    }
+                }
+
+                em.merge(actorEntity);
+            }
+
+            em.getTransaction().commit();
+            System.out.println("All actors and their movie associations persisted successfully.");
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            e.printStackTrace();
+        } finally {
+            em.close();
+        }
+    }
+
 
     private static void displayAllMovies() {
         List<MovieDTO> allMovies = movieDAO.getAllMovies();
